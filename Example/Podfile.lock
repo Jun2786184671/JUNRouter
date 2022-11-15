@@ -1,0 +1,16 @@
+PODS:
+  - JUNRouter (0.1.0)
+
+DEPENDENCIES:
+  - JUNRouter (from `../`)
+
+EXTERNAL SOURCES:
+  JUNRouter:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  JUNRouter: 278ced13dca3ea949fa92518d072ff6ed95b83fb
+
+PODFILE CHECKSUM: 046f00ea14e9599ff111c41079592c4ec424a808
+
+COCOAPODS: 1.11.3

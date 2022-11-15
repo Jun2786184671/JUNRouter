@@ -13,6 +13,8 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
+    JUNRouteExpress *routeExpress = [[JUNRouteExpress alloc] initWithRouteMappingFile:@"route_mapping.plist" animated:true];
+    [routeExpress deliver:[NSURL URLWithString:@"page:///red/orange/yellow/JUNGreenViewController/blue/purple?alert='hello'"] toFirstRouter:self.window.rootViewController];
     return YES;
 }
 

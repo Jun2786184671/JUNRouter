@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
   s.name             = 'JUNRouter'
   s.version          = '0.1.0'
-  s.summary          = 'A short description of JUNRouter.'
+  s.summary          = 'A simple intra-application routing framework.'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -18,25 +18,25 @@ Pod::Spec.new do |s|
 #   * Finally, don't worry about the indent, CocoaPods strips it!
 
   s.description      = <<-DESC
-TODO: Add long description of the pod here.
+A simple intra-application routing framework.
                        DESC
 
-  s.homepage         = 'https://github.com/Jun Ma/JUNRouter'
+  s.homepage         = 'https://github.com/Jun2786184671/JUNRouter'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { 'Jun Ma' => 'maxinchun5@gmail.com' }
-  s.source           = { :git => 'https://github.com/Jun Ma/JUNRouter.git', :tag => s.version.to_s }
-  # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
+  s.source           = { :git => 'git@github.com:Jun2786184671/JUNRouter.git', :tag => s.version.to_s }
+  s.social_media_url = 'https://t.me/JunMa5'
 
-  s.ios.deployment_target = '10.0'
+  s.ios.deployment_target = '9.0'
 
-  s.source_files = 'JUNRouter/Classes/**/*'
+  s.source_files = 'JUNRouter/Classes/**/*.{h,m}'
   
   # s.resource_bundles = {
   #   'JUNRouter' => ['JUNRouter/Assets/*.png']
   # }
 
-  # s.public_header_files = 'Pod/Classes/**/*.h'
-  # s.frameworks = 'UIKit', 'MapKit'
+  s.public_header_files = 'JUNRouter/Classes/JUNRouteExpress.h'
+  s.frameworks = 'Foundation', 'UIKit'
   # s.dependency 'AFNetworking', '~> 2.3'
 end

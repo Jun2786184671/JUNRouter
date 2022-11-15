@@ -1,0 +1,6 @@
+framework module Pods_JUNRouter_Tests {
+  umbrella header "Pods-JUNRouter_Tests-umbrella.h"
+
+  export *
+  module * { export * }
+}
