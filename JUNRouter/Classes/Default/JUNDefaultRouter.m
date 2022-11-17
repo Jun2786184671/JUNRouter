@@ -72,7 +72,11 @@
     if ([prevVc isKindOfClass:[UITabBarController class]]) {
         UITabBarController *tabVc = (UITabBarController *)prevVc;
         for (UIViewController *vc in tabVc.childViewControllers) {
-            if (![[vc class] isEqual:[nextVc class]]) continue;
+            UIViewController *visibleVc = vc;
+            if ([vc isKindOfClass:[UINavigationController class]]) {
+                visibleVc = ((UINavigationController *)vc).visibleViewController;
+            }
+            if (![[visibleVc class] isEqual:[nextVc class]]) continue;
             [tabVc jun_setSelectedViewController:vc completion:completion];
             return;
         }
