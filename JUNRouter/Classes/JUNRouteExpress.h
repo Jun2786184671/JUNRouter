@@ -29,6 +29,7 @@ typedef void (^JUNRouterNextHandler)(id<JUNRouter> _Nullable dest);
 
 - (instancetype)initWithRouteMappingFile:(NSString *)fileName animated:(Boolean)animated;
 - (instancetype)initWithRouteMapper:(nullable NSDictionary<NSString *, NSString *> *)routeMapper animated:(Boolean)animated;
+@property(nonatomic, copy) NSString *scheme;
 @property(nonatomic, readonly) id<JUNRouter> currentRouter;
 - (void)deliver:(NSURL *)url toFirstRouter:(id<JUNRouter>)firstRouter;
 

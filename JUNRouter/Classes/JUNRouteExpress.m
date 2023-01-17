@@ -86,7 +86,16 @@
 }
 
 - (void)_checkValidURL:(NSURL *)url {
-    NSAssert([url.scheme isEqualToString:@"page"], @"url must be start with 'page://'");
+    [self _checkValidScheme:url];
+    [self _checkValidHost:url];
+}
+
+- (void)_checkValidScheme:(NSURL *)url {
+    NSAssert([url.scheme isEqualToString:self.scheme ?: @"page"],
+             @"url must be customized or start with 'page://'");
+}
+
+- (void)_checkValidHost:(NSURL *)url {
     NSAssert(url.host.length == 0 ||
              [url.host isEqualToString:@"localhost"] ||
              [url.host isEqualToString:@"127.0.0.1"], @"url host must be local");
