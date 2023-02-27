@@ -12,7 +12,6 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NSURL (JUNex4RouteExpress)
 
 @property(nonatomic, readonly) Boolean jun_isRoot;
-@property(nonatomic, readonly, nullable) NSDictionary<NSString *, NSObject *> *jun_params;
 
 @end
 

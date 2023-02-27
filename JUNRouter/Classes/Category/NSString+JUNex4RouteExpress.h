@@ -12,6 +12,9 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NSString (JUNex4RouteExpress)
 
 @property(nonatomic, readonly) NSObject *jun_inferredValue;
+- (NSString *)jun_stringByURLEncode;
+- (NSString *)jun_stringByURLDecode;
+- (NSString *)jun_stringByRemoveQuotes;
 
 @end
 

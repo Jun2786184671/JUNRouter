@@ -7,6 +7,7 @@
 
 #import "JUNRouteExpress.h"
 #import "NSURL+JUNex4RouteExpress.h"
+#import "NSString+JUNex4RouteExpress.h"
 #import "JUNDefaultRouter.h"
 
 @interface JUNRouteModel : NSObject
@@ -85,6 +86,22 @@
     handler(firstRouter);
 }
 
+- (NSDictionary *)parseQueryString:(NSString *)queryString {
+    if (queryString.length == 0) {
+        return nil;
+    }
+    NSArray<NSString *> *entries = [queryString componentsSeparatedByString:@"&"];
+    NSMutableDictionary *res = [NSMutableDictionary dictionaryWithCapacity:entries.count];
+    for (NSString *entry in entries) {
+        NSArray<NSString *> *slices = [entry componentsSeparatedByString:@"="];
+        NSAssert(slices.count == 2, @"Url parameter format is not valid.");
+        NSString *key = slices.firstObject;
+        NSObject *value = [slices.lastObject jun_stringByRemoveQuotes].jun_inferredValue;
+        [res setValue:value forKey:key];
+    }
+    return res;
+}
+
 - (void)_checkValidURL:(NSURL *)url {
     [self _checkValidScheme:url];
     [self _checkValidHost:url];
@@ -127,7 +144,8 @@
         if (![route.name isEqualToString:self.url.pathComponents[self.cursor]]) continue;
         _cursor++;
         if (route.handler != nil) {
-            NSDictionary *params = self.cursor == self.url.pathComponents.count ? self.url.jun_params : nil;
+            NSString *paramsStr = self.url.query;
+            NSDictionary *params = self.cursor == self.url.pathComponents.count ? [self parseQueryString:paramsStr] : nil;
             route.handler(params, handler);
         }
         break;
