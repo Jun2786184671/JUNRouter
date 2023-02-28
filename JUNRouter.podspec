@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'JUNRouter'
-  s.version          = '0.3.0'
+  s.version          = '0.3.1'
   s.summary          = 'A simple intra-application routing framework.'
 
 # This description is used to generate tags and improve search results.

@@ -87,11 +87,15 @@
 }
 
 - (NSString *)jun_stringByRemoveQuotes {
-    NSRegularExpression *nameExpression = [NSRegularExpression regularExpressionWithPattern:@"[\\w]+" options:NSRegularExpressionCaseInsensitive error:nil];
-    NSArray *matches = [nameExpression matchesInString:self options:0 range:NSMakeRange(0, [self length])];
-    NSParameterAssert([matches count] == 1);
-    NSRange matchRange = [matches.lastObject range];
-    return [self substringWithRange:matchRange];
+    if ([[self substringToIndex:1] isEqualToString:@"'"] && [[self substringFromIndex:self.length - 1] isEqualToString:@"'"]) {
+        return [self substringWithRange:NSMakeRange(1, self.length - 2)];
+    }
+    return self;
+//    NSRegularExpression *nameExpression = [NSRegularExpression regularExpressionWithPattern:@"^['\"]?.+['\"]?$" options:NSRegularExpressionCaseInsensitive error:nil];
+//    NSArray *matches = [nameExpression matchesInString:self options:0 range:NSMakeRange(0, [self length])];
+//    NSParameterAssert([matches count] == 1);
+//    NSRange matchRange = [matches.lastObject range];
+//    return [self substringWithRange:matchRange];
 }
 
 @end
