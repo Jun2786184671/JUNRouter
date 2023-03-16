@@ -32,6 +32,7 @@ typedef void (^JUNRouterNextHandler)(id<JUNRouter> _Nullable dest);
 @property(nonatomic, copy) NSString *scheme;
 @property(nonatomic, readonly) id<JUNRouter> currentRouter;
 - (void)deliver:(NSURL *)url toFirstRouter:(id<JUNRouter>)firstRouter;
+- (void)deliver:(NSURL *)url toFirstRouter:(id<JUNRouter>)firstRouter completion:(void (^_Nullable)(id<JUNRouter> lastRouter))completionHandler;
 #pragma mark - hook
 /// Subclass can override.
 /// - Parameter queryString: params of url

@@ -72,13 +72,20 @@
 }
 
 - (void)deliver:(NSURL *)url toFirstRouter:(id<JUNRouter>)firstRouter {
+    [self deliver:url toFirstRouter:firstRouter completion:nil];
+}
+
+- (void)deliver:(NSURL *)url toFirstRouter:(id<JUNRouter>)firstRouter completion:(void (^)(id<JUNRouter> _Nonnull))completionHandler {
     [self _checkValidURL:url];
     _url = url;
     _cursor = 1;
     __weak __block void (^weakHandler)(id<JUNRouter> next) = nil;
     
     JUNRouterNextHandler handler = ^(id<JUNRouter> router) {
-        if (router == nil || [self _checkRecursiveBounds] == true) return;
+        if (router == nil || [self _checkRecursiveBounds] == true) {
+            if (completionHandler) completionHandler(self->_currentRouter);
+            return;
+        }
         self->_currentRouter = router;
         [self _routeHandle:router handler:weakHandler];
     };
