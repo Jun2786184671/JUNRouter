@@ -79,15 +79,22 @@
     if ([prevVc isKindOfClass:[UITabBarController class]]) {
         UITabBarController *tabVc = (UITabBarController *)prevVc;
         for (UIViewController *vc in tabVc.childViewControllers) {
-            UIViewController *visibleVc = vc;
-            if ([vc isKindOfClass:[UINavigationController class]]) {
-                visibleVc = ((UINavigationController *)vc).visibleViewController;
+            if ([[vc class] isEqual:[nextVc class]]) {
+                [tabVc jun_setSelectedViewController:vc completion:^{
+                    next(vc);
+                }];
+                return;
+            } else if ([vc isKindOfClass:[UINavigationController class]]) {
+                UINavigationController *navVc = (UINavigationController *)vc;
+                for (UIViewController *subVc in navVc.childViewControllers) {
+                    if (![[subVc class] isEqual:[nextVc class]]) continue;
+                    [tabVc jun_setSelectedViewController:navVc completion:^{
+                        [navVc popToViewController:subVc animated:true];
+                        next(subVc);
+                    }];
+                    return;
+                }
             }
-            if (![[visibleVc class] isEqual:[nextVc class]]) continue;
-            [tabVc jun_setSelectedViewController:vc completion:^{
-                next(visibleVc);
-            }];
-            return;
         }
         [self _handleVcTransitionFrom:tabVc.selectedViewController to:nextVc nextHandler:next];
     } else if ([prevVc isKindOfClass:[UINavigationController class]]) {

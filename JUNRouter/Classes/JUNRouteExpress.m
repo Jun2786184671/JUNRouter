@@ -105,6 +105,7 @@
          __block JUNRouterNextHandler handler = ^(id<JUNRouter> router) {
             [currentQueue addOperationWithBlock:^{
                 if (router == nil || [weakSelf _checkRecursiveBounds] == true) {
+                    if (!handler) return;
                     handler = nil;
                     if (completionHandler) {
                         [currentQueue addOperationWithBlock:^{
@@ -181,13 +182,15 @@
         [self _handleByRouteHandleMethod:router handler:handler];
     }
     [queue addOperationWithBlock:^{
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (self.cursor == prevCursor && ![self _checkRecursiveBounds]) {
-                NSAssert([self.defaultRouter respondsToSelector:@selector(jun_routeHandle:cursor:nextHandler:)],
-                         @"default router must implement routeHandle method");
+        if (self.cursor == prevCursor && ![self _checkRecursiveBounds]) {
+            NSAssert([self.defaultRouter respondsToSelector:@selector(jun_routeHandle:cursor:nextHandler:)],
+                     @"default router must implement routeHandle method");
+            dispatch_async(dispatch_get_main_queue(), ^{
                 [self.defaultRouter jun_routeHandle:self.url cursor:&self->_cursor nextHandler:handler];
-            }
-        });
+            });
+        } else if ([self _checkRecursiveBounds]) {
+            handler(nil);
+        }
     }];
 }
 
