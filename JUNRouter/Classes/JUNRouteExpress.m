@@ -49,13 +49,23 @@
 
 @interface JUNRouteExpress ()
 
-@property(nonatomic, strong, readonly) id<JUNRouter> defaultRouter;
-@property(nonatomic, copy, readonly) NSURL *url;
-@property(nonatomic, assign, readonly) int cursor;
+@property(nonatomic, strong) id<JUNRouter> defaultRouter;
+@property(nonatomic, strong) id<JUNRouter> currentRouter;
+@property(nonatomic, copy) NSURL *url;
+@property(nonatomic, assign) int cursor;
+@property(nonatomic, strong) NSMutableArray *stashedDeliverBlocks;
+@property(nonatomic, assign) bool isDelivering;
 
 @end
 
 @implementation JUNRouteExpress
+
+- (NSMutableArray *)stashedDeliverBlocks {
+    if (!_stashedDeliverBlocks) {
+        _stashedDeliverBlocks = [NSMutableArray array];
+    }
+    return _stashedDeliverBlocks;
+}
 
 - (instancetype)initWithRouteMapper:(NSDictionary<NSString *,NSString *> *)routeMapper animated:(Boolean)animated {
     if (self = [super init]) {
@@ -76,21 +86,48 @@
 }
 
 - (void)deliver:(NSURL *)url toFirstRouter:(id<JUNRouter>)firstRouter completion:(void (^)(id<JUNRouter> _Nonnull))completionHandler {
-    [self _checkValidURL:url];
-    _url = url;
-    _cursor = 1;
-    __weak __block void (^weakHandler)(id<JUNRouter> next) = nil;
     
-    JUNRouterNextHandler handler = ^(id<JUNRouter> router) {
-        if (router == nil || [self _checkRecursiveBounds] == true) {
-            if (completionHandler) completionHandler(self->_currentRouter);
-            return;
-        }
-        self->_currentRouter = router;
-        [self _routeHandle:router handler:weakHandler];
+    NSOperationQueue *currentQueue = [NSOperationQueue currentQueue];
+    
+    __weak typeof(self) weakSelf = self;
+    void (^deliverBlock)(void) = ^{
+        [weakSelf _checkValidURL:url];
+        weakSelf.url = url;
+        weakSelf.cursor = 1;
+        
+         __block JUNRouterNextHandler handler = ^(id<JUNRouter> router) {
+            [currentQueue addOperationWithBlock:^{
+                if (router == nil || [weakSelf _checkRecursiveBounds] == true) {
+                    handler = nil;
+                    if (completionHandler) {
+                        [currentQueue addOperationWithBlock:^{
+                            completionHandler(weakSelf.currentRouter);
+                        }];
+                    }
+                    if ([self.stashedDeliverBlocks count]) {
+                        void (^stashedDeliverBlock)(void) = self.stashedDeliverBlocks[0];
+                        [self.stashedDeliverBlocks removeObjectAtIndex:0];
+                        [currentQueue addOperationWithBlock:stashedDeliverBlock];
+                    } else {
+                        weakSelf.isDelivering = false;
+                    }
+                    return;
+                }
+                weakSelf.currentRouter = router;
+                [weakSelf _routeHandle:router handler:handler queue:currentQueue];
+            }];
+        };
+        handler(firstRouter);
     };
-    weakHandler = handler;
-    handler(firstRouter);
+    
+    @synchronized (self) {
+        if (!self.isDelivering) {
+            self.isDelivering = true;
+            deliverBlock();
+        } else {
+            [self.stashedDeliverBlocks addObject:deliverBlock];
+        }
+    }
 }
 
 - (NSDictionary *)parseQueryString:(NSString *)queryString {
@@ -129,20 +166,22 @@
     return self.cursor == [self.url.pathComponents count];
 }
 
-- (void)_routeHandle:(id<JUNRouter>)router handler:(JUNRouterNextHandler)handler {
+- (void)_routeHandle:(id<JUNRouter>)router handler:(JUNRouterNextHandler)handler queue:(NSOperationQueue *)queue {
     int prevCursor = self.cursor;
     if ([router respondsToSelector:@selector(jun_routeBuild:)]) {
         [self _handleByRouteBuildMethod:router handler:handler];
     } else if ([router respondsToSelector:@selector(jun_routeHandle:cursor:nextHandler:)]) {
         [self _handleByRouteHandleMethod:router handler:handler];
     }
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if (self.cursor == prevCursor && ![self _checkRecursiveBounds]) {
-            NSAssert([self.defaultRouter respondsToSelector:@selector(jun_routeHandle:cursor:nextHandler:)],
-                     @"default router must implement routeHandle method");
-            [self.defaultRouter jun_routeHandle:self.url cursor:&self->_cursor nextHandler:handler];
-        }
-    });
+    [queue addOperationWithBlock:^{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (self.cursor == prevCursor && ![self _checkRecursiveBounds]) {
+                NSAssert([self.defaultRouter respondsToSelector:@selector(jun_routeHandle:cursor:nextHandler:)],
+                         @"default router must implement routeHandle method");
+                [self.defaultRouter jun_routeHandle:self.url cursor:&self->_cursor nextHandler:handler];
+            }
+        });
+    }];
 }
 
 - (void)_handleByRouteBuildMethod:(id<JUNRouter>)router handler:(JUNRouterNextHandler)handler {
