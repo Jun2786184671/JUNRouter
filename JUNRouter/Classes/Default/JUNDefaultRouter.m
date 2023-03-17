@@ -70,6 +70,12 @@
 }
 
 - (void)_handleVcTransitionFrom:(UIViewController *)prevVc to:(UIViewController *)nextVc nextHandler:(JUNRouterNextHandler)next {
+    if (prevVc.presentedViewController != nil) {
+        [prevVc.presentedViewController dismissViewControllerAnimated:self.isAnimated completion:^{
+            [self _handleVcTransitionFrom:prevVc to:nextVc nextHandler:next];
+        }];
+        return;
+    }
     if ([prevVc isKindOfClass:[UITabBarController class]]) {
         UITabBarController *tabVc = (UITabBarController *)prevVc;
         for (UIViewController *vc in tabVc.childViewControllers) {

@@ -54,7 +54,7 @@
 @property(nonatomic, copy) NSURL *url;
 @property(nonatomic, assign) int cursor;
 @property(nonatomic, strong) NSMutableArray *stashedDeliverBlocks;
-@property(nonatomic, assign) bool isDelivering;
+@property(nonatomic, assign) bool isIdle;
 
 @end
 
@@ -67,8 +67,15 @@
     return _stashedDeliverBlocks;
 }
 
-- (instancetype)initWithRouteMapper:(NSDictionary<NSString *,NSString *> *)routeMapper animated:(Boolean)animated {
+- (instancetype)init {
     if (self = [super init]) {
+        self.isIdle = true;
+    }
+    return self;
+}
+
+- (instancetype)initWithRouteMapper:(NSDictionary<NSString *,NSString *> *)routeMapper animated:(Boolean)animated {
+    if (self = [self init]) {
         _defaultRouter = [[JUNDefaultRouter alloc] initWithRouteMapper:routeMapper animated:animated routeExpress:self];
     }
     return self;
@@ -109,7 +116,7 @@
                         [self.stashedDeliverBlocks removeObjectAtIndex:0];
                         [currentQueue addOperationWithBlock:stashedDeliverBlock];
                     } else {
-                        weakSelf.isDelivering = false;
+                        weakSelf.isIdle = true;
                     }
                     return;
                 }
@@ -121,8 +128,8 @@
     };
     
     @synchronized (self) {
-        if (!self.isDelivering) {
-            self.isDelivering = true;
+        if (self.isIdle) {
+            self.isIdle = false;
             deliverBlock();
         } else {
             [self.stashedDeliverBlocks addObject:deliverBlock];
