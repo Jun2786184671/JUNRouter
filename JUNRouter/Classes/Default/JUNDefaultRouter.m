@@ -89,7 +89,9 @@
                 for (UIViewController *subVc in navVc.childViewControllers) {
                     if (![[subVc class] isEqual:[nextVc class]]) continue;
                     [tabVc jun_setSelectedViewController:navVc completion:^{
-                        [navVc popToViewController:subVc animated:true];
+                        if (![navVc.visibleViewController isEqual:subVc]) {
+                            [navVc popToViewController:subVc animated:true];
+                        }
                         next(subVc);
                     }];
                     return;
