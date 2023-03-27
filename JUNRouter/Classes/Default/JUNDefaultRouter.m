@@ -70,11 +70,14 @@
 }
 
 - (void)_handleVcTransitionFrom:(UIViewController *)prevVc to:(UIViewController *)nextVc nextHandler:(JUNRouterNextHandler)next {
-    if (prevVc.presentedViewController != nil) {
-        [prevVc.presentedViewController dismissViewControllerAnimated:self.isAnimated completion:^{
-            [self _handleVcTransitionFrom:prevVc to:nextVc nextHandler:next];
-        }];
-        return;
+    if (prevVc.presentedViewController) {
+        UIViewController *presentedVC = prevVc.presentedViewController;
+        if (![presentedVC respondsToSelector:@selector(jun_routeRequestDismissWhenTransitionToViewControllerjun_routeRequestDismissWhenTransitionToViewController:)] || [presentedVC jun_routeRequestDismissWhenTransitionToViewController:nextVc] == true) {
+            [presentedVC dismissViewControllerAnimated:self.isAnimated completion:^{
+                [self _handleVcTransitionFrom:prevVc to:nextVc nextHandler:next];
+            }];
+            return;
+        }
     }
     if ([prevVc isKindOfClass:[UITabBarController class]]) {
         UITabBarController *tabVc = (UITabBarController *)prevVc;

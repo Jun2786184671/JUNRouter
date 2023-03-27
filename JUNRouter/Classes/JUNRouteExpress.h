@@ -23,6 +23,8 @@ typedef void (^JUNRouterNextHandler)(id<JUNRouter> _Nullable dest);
 
 @interface UIViewController () <JUNRouter>
 
+- (BOOL)jun_routeRequestDismissWhenTransitionToViewController:(UIViewController *)vc;
+
 @end
 
 @interface JUNRouteExpress : NSObject
