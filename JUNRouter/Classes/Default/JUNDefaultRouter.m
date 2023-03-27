@@ -60,24 +60,29 @@
 - (void)_handleTransitionFrom:(id<JUNRouter>)prevRouter to:(id<JUNRouter>)nextRouter nextHandler:(JUNRouterNextHandler)next {
     if (nextRouter == nil || prevRouter == nil) return;
     if (![nextRouter isKindOfClass:[UIViewController class]]) return;
+    UIViewController *nextVc = (UIViewController *)nextRouter;
     dispatch_async(dispatch_get_main_queue(), ^{
         if ([prevRouter isKindOfClass:[UIViewController class]]) {
-            [self _handleVcTransitionFrom:(UIViewController *)prevRouter to:(UIViewController *)nextRouter nextHandler:next];
+            UIViewController *prevVc = (UIViewController *)prevRouter;
+            [self _handleVcTransitionFrom:prevVc to:nextVc nextHandler:next];
             return;
         }
-        [self _presentVcToFront:(UIViewController *)nextRouter nextHandler:next];
+        UIViewController *rootVc = [UIApplication sharedApplication].keyWindow.rootViewController;
+        [self _vc:rootVc presentVcToFront:nextVc nextHandler:next];
     });
 }
 
 - (void)_handleVcTransitionFrom:(UIViewController *)prevVc to:(UIViewController *)nextVc nextHandler:(JUNRouterNextHandler)next {
     if (prevVc.presentedViewController) {
-        UIViewController *presentedVC = prevVc.presentedViewController;
-        if (![presentedVC respondsToSelector:@selector(jun_routeRequestDismissWhenTransitionToViewControllerjun_routeRequestDismissWhenTransitionToViewController:)] || [presentedVC jun_routeRequestDismissWhenTransitionToViewController:nextVc] == true) {
-            [presentedVC dismissViewControllerAnimated:self.isAnimated completion:^{
+        UIViewController *presentedVc = prevVc.presentedViewController;
+        if ([self _shouldDismissVc:presentedVc whenTransitionToVc:nextVc]) {
+            [presentedVc dismissViewControllerAnimated:self.isAnimated completion:^{
                 [self _handleVcTransitionFrom:prevVc to:nextVc nextHandler:next];
             }];
-            return;
+        } else {
+            [self _handleVcTransitionFrom:presentedVc to:nextVc nextHandler:next];
         }
+        return;
     }
     if ([prevVc isKindOfClass:[UITabBarController class]]) {
         UITabBarController *tabVc = (UITabBarController *)prevVc;
@@ -111,25 +116,32 @@
         [(UINavigationController *)prevVc jun_pushViewController:nextVc animated:self.isAnimated completion:^{
             next(nextVc);
         }];
-    } else if (prevVc.navigationController != nil) {
+    } else if (prevVc.navigationController) {
         [prevVc.navigationController jun_pushViewController:nextVc animated:self.isAnimated completion:^{
             next(nextVc);
         }];
-    } else if (prevVc.isBeingPresented || prevVc.presentingViewController != nil) {
+    } else if (prevVc.isBeingPresented || prevVc.presentingViewController) {
         UIViewController *ancestor = prevVc.presentingViewController;
-        [prevVc dismissViewControllerAnimated:self.isAnimated completion:^{
-            [self _handleVcTransitionFrom:ancestor to:nextVc nextHandler:next];
-        }];
+        if ([self _shouldDismissVc:prevVc whenTransitionToVc:nextVc]) {
+            [prevVc dismissViewControllerAnimated:self.isAnimated completion:^{
+                [self _handleVcTransitionFrom:ancestor to:nextVc nextHandler:next];
+            }];
+        } else {
+            [self _vc:prevVc presentVcToFront:nextVc nextHandler:next];
+        }
     } else {
-        [self _presentVcToFront:nextVc nextHandler:next];
+        [self _vc:prevVc presentVcToFront:nextVc nextHandler:next];
     }
 }
 
-- (void)_presentVcToFront:(UIViewController *)vc nextHandler:(JUNRouterNextHandler)next {
-    UIViewController *rootVc = [UIApplication sharedApplication].keyWindow.rootViewController;
-    [rootVc presentViewController:vc animated:self.isAnimated completion:^{
-        next(vc);
+- (void)_vc:(UIViewController *)vc presentVcToFront:(UIViewController *)targetVc nextHandler:(JUNRouterNextHandler)next {
+    [vc presentViewController:targetVc animated:self.isAnimated completion:^{
+        next(targetVc);
     }];
+}
+
+- (BOOL)_shouldDismissVc:(UIViewController *)presentedVC whenTransitionToVc:(UIViewController *)nextVc {
+    return ![presentedVC respondsToSelector:@selector(jun_routeRequestDismissWhenTransitionToViewController:)] || [presentedVC jun_routeRequestDismissWhenTransitionToViewController:nextVc] == true;
 }
 
 @end
