@@ -197,7 +197,7 @@
 - (void)_handleByRouteBuildMethod:(id<JUNRouter>)router handler:(JUNRouterNextHandler)handler {
     NSArray<JUNRouteModel *> *routes = [self _getRoutes:router];
     for (JUNRouteModel *route in routes) {
-        if (![route.name isEqualToString:self.url.pathComponents[self.cursor]]) continue;
+        if (![[route.name lowercaseString] isEqualToString:[self.url.pathComponents[self.cursor] lowercaseString]]) continue;
         _cursor++;
         if (route.handler != nil) {
             NSString *paramsStr = self.url.query;
