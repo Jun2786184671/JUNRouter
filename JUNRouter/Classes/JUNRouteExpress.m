@@ -185,9 +185,7 @@
         if (self.cursor == prevCursor && ![self _checkRecursiveBounds]) {
             NSAssert([self.defaultRouter respondsToSelector:@selector(jun_routeHandle:cursor:nextHandler:)],
                      @"default router must implement routeHandle method");
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self.defaultRouter jun_routeHandle:self.url cursor:&self->_cursor nextHandler:handler];
-            });
+            [self.defaultRouter jun_routeHandle:self.url cursor:&self->_cursor nextHandler:handler];
         } else if ([self _checkRecursiveBounds]) {
             handler(nil);
         }

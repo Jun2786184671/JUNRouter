@@ -29,6 +29,12 @@
 }
 
 - (void)jun_routeHandle:(NSURL *)url cursor:(int *)cursor nextHandler:(JUNRouterNextHandler)next {
+    NSOperationQueue *queue = [NSOperationQueue currentQueue];
+    JUNRouterNextHandler wrappedNext = ^(id<JUNRouter> _Nullable dest) {
+        [queue addOperationWithBlock:^{
+            next(dest);
+        }];
+    };
     NSString *routeName = url.pathComponents[*cursor];
     NSString *routerClsName = self.routeMapper[routeName];
     if (routerClsName == nil) {
@@ -39,10 +45,12 @@
     id<JUNRouter> prevRouter = self.routeExpress.currentRouter;
     id<JUNRouter> nextRouter = [[NSClassFromString(routerClsName) alloc] init];
     if ([[prevRouter class] isEqual:[nextRouter class]]) {
-        next(nextRouter);
+        wrappedNext(nextRouter);
         return;
     }
-    [self _handleTransitionFrom:prevRouter to:nextRouter nextHandler:next];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self _handleTransitionFrom:prevRouter to:nextRouter nextHandler:wrappedNext];
+    });
 }
 
 //- (void)jun_routeBuild:(JUNRouteBuilder *)route {
