@@ -21,9 +21,10 @@ typedef void (^JUNRouterNextHandler)(id<JUNRouter> _Nullable dest);
 
 @end
 
-@interface UIViewController () <JUNRouter>
+@interface UIViewController () <JUNRouter> // Hooks for default router to perform vc transitions.
 
-- (BOOL)jun_routeRequestDismissWhenTransitionToViewController:(UIViewController *)vc;
+- (BOOL)jun_routeRequestDismissWhenTransitionToViewController:(UIViewController *)vc url:(NSURL *)url cursor:(int)cursor;
+- (BOOL)jun_routeRequestPopWhenTransitionToViewController:(UIViewController *)vc url:(NSURL *)url cursor:(int)cursor;
 
 @end
 
@@ -33,6 +34,8 @@ typedef void (^JUNRouterNextHandler)(id<JUNRouter> _Nullable dest);
 - (instancetype)initWithRouteMapper:(nullable NSDictionary<NSString *, NSString *> *)routeMapper animated:(Boolean)animated;
 @property(nonatomic, copy) NSString *scheme;
 @property(nonatomic, readonly) id<JUNRouter> currentRouter;
+@property(nonatomic, readonly) NSURL *url;
+@property(nonatomic, readonly) int cursor;
 - (void)deliver:(NSURL *)url toFirstRouter:(id<JUNRouter>)firstRouter;
 - (void)deliver:(NSURL *)url toFirstRouter:(id<JUNRouter>)firstRouter completion:(void (^_Nullable)(id<JUNRouter> lastRouter))completionHandler;
 #pragma mark - hook
