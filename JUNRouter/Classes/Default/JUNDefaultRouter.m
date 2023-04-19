@@ -114,18 +114,27 @@
         [self _handleVcTransitionFrom:tabVc.selectedViewController to:nextVc nextHandler:next];
     } else if ([prevVc isKindOfClass:[UINavigationController class]]) {
         UINavigationController *navVc = (UINavigationController *)prevVc;
-        UIViewController *visibleVc = ((UINavigationController *)prevVc).visibleViewController;
-        if ([[visibleVc class] isEqual:[nextVc class]]) {
+        UIViewController *topVc = ((UINavigationController *)prevVc).topViewController;
+        if ([[topVc class] isEqual:[nextVc class]]) {
             next(nextVc);
             return;
         }
         for (UIViewController *subVc in navVc.childViewControllers) {
             if (![[subVc class] isEqual:[nextVc class]]) continue;
-            while (navVc.visibleViewController != subVc) {
-                if (![self _shouldPopVc:navVc.visibleViewController whenTransitionToVc:nextVc]) break;
-                [navVc popViewControllerAnimated:self.isAnimated];
+            UIViewController *destVc = nil;
+            long count = [navVc.childViewControllers count] - 1;
+            while ((destVc = navVc.childViewControllers[count--]) != subVc) {
+                if (![self _shouldPopVc:destVc whenTransitionToVc:nextVc]) break;
             }
-            next(subVc);
+            [navVc popToViewController:destVc animated:self.isAnimated];
+            if (self.isAnimated) {
+                NSParameterAssert([[NSOperationQueue currentQueue] isEqual:[NSOperationQueue mainQueue]]);
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    next(subVc);
+                });
+            } else {
+                next(subVc);
+            }
             return;
         }
         [(UINavigationController *)prevVc jun_pushViewController:nextVc animated:self.isAnimated completion:^{
@@ -159,10 +168,10 @@
     return ![presentedVc respondsToSelector:@selector(jun_routeRequestDismissWhenTransitionToViewController:url:cursor:)] || [presentedVc jun_routeRequestDismissWhenTransitionToViewController:nextVc url:url cursor:cursor] == true;
 }
 
-- (BOOL)_shouldPopVc:(UIViewController *)visibleVc whenTransitionToVc:(UIViewController *)nextVc {
+- (BOOL)_shouldPopVc:(UIViewController *)vc whenTransitionToVc:(UIViewController *)nextVc {
     NSURL *url = self.routeExpress.url;
     int cursor = self.routeExpress.cursor;
-    return ![visibleVc respondsToSelector:@selector(jun_routeRequestPopWhenTransitionToViewController:url:cursor:)] || [visibleVc jun_routeRequestPopWhenTransitionToViewController:nextVc url:url cursor:cursor];
+    return ![vc respondsToSelector:@selector(jun_routeRequestPopWhenTransitionToViewController:url:cursor:)] || [vc jun_routeRequestPopWhenTransitionToViewController:nextVc url:url cursor:cursor];
 }
 
 @end
