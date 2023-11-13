@@ -116,7 +116,7 @@
         UINavigationController *navVc = (UINavigationController *)prevVc;
         UIViewController *topVc = ((UINavigationController *)prevVc).topViewController;
         if ([[topVc class] isEqual:[nextVc class]]) {
-            next(nextVc);
+            next(topVc);
             return;
         }
         for (UIViewController *subVc in navVc.childViewControllers) {
