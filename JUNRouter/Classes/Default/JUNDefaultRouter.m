@@ -66,8 +66,8 @@
 //}
 
 - (void)_handleTransitionFrom:(id<JUNRouter>)prevRouter to:(id<JUNRouter>)nextRouter nextHandler:(JUNRouterNextHandler)next {
-    if (nextRouter == nil || prevRouter == nil) return;
-    if (![nextRouter isKindOfClass:[UIViewController class]]) return;
+    if (nextRouter == nil || prevRouter == nil) return next(nil);
+    if (![nextRouter isKindOfClass:[UIViewController class]]) return next(nil);
     UIViewController *nextVc = (UIViewController *)nextRouter;
     dispatch_async(dispatch_get_main_queue(), ^{
         if ([prevRouter isKindOfClass:[UIViewController class]]) {
